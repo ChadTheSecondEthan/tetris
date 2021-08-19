@@ -1,21 +1,20 @@
 import pygame
 
-pygame.init()
-pygame.font.init()
-
 import variables
 import game_loop
+
+pygame.init()
+pygame.font.init()
 
 
 def main():
     screen = pygame.display.set_mode(variables.SCREEN_SIZE)
-    pygame.display.set_caption("Minesweeper")
+    pygame.display.set_caption("Tetris")
 
     run(screen)
 
 
 def run(screen):
-
     game_loop.start(screen)
 
     # Event loop
