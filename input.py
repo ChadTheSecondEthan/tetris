@@ -1,17 +1,18 @@
 import pygame
 
+import game_loop
+
 
 def update():
-
     keys = pygame.key.get_pressed()
 
     if keys[pygame.K_SPACE]:
         print("SPACE")
     if keys[pygame.K_LEFT]:
-        print("LEFT")
+        game_loop.current_block.h_move(False)
     if keys[pygame.K_RIGHT]:
-        print("RIGHT")
+        game_loop.current_block.h_move(True)
     if keys[pygame.K_DOWN]:
-        print("DOWN")
+        game_loop.current_block.v_move(False)
     if keys[pygame.K_UP]:
-        print("UP")
+        game_loop.current_block.v_move(True)

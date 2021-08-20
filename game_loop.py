@@ -1,6 +1,6 @@
 import pygame
 import sys
-from time import time, sleep
+from time import time
 
 import block
 import input
@@ -9,6 +9,8 @@ import variables
 
 background = None
 screen = None
+
+stored_block = None
 current_block = None
 blocks = []
 
@@ -17,9 +19,7 @@ playing = True
 
 prev_time = 0
 prev_block_time = 0
-framerate = 10
-wait = 1 / framerate
-
+wait = 1 / variables.FPS
 
 
 def start(s):
@@ -39,7 +39,6 @@ def start(s):
 
 def update():
     global prev_time, prev_block_time
-    dt = time() - prev_time
 
     if pygame.key.get_pressed()[pygame.K_ESCAPE]:
         sys.exit()
@@ -50,7 +49,7 @@ def update():
         if event.type == pygame.KEYDOWN:
             input.update()
 
-    if time() - prev_block_time > 1:
+    if time() - prev_block_time > wait:
         current_block.update()
         prev_block_time = time()
 
@@ -63,5 +62,3 @@ def update():
     pygame.display.flip()
 
     prev_time = time()
-    if wait > dt:
-        sleep(wait - dt)
