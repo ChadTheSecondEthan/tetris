@@ -12,6 +12,7 @@ screen = None
 
 stored_block = None
 current_block = None
+stored_this_block = False
 blocks = []
 
 won = False
@@ -46,19 +47,56 @@ def update():
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
-        if event.type == pygame.KEYDOWN:
+        if event.type == pygame.KEYDOWN and playing:
             input.update()
 
-    if time() - prev_block_time > wait:
+    if playing and time() - prev_block_time > wait:
         current_block.update()
         prev_block_time = time()
 
     background.fill(variables.BG_COLOR)
 
     for b in blocks:
-        b.draw(background)
+        if b is not stored_block:
+            b.draw(background)
 
     screen.blit(background, (0, 0))
     pygame.display.flip()
 
     prev_time = time()
+
+
+def get_new_block():
+    global current_block, stored_this_block
+    current_block = block.spawn_random_block()
+
+    if current_block.collides_with(blocks[-1]):
+        current_block = None
+        return
+
+    blocks.append(current_block)
+    stored_this_block = False
+
+
+def try_remove_row():
+    # TODO
+    pass
+
+
+def store_current_block():
+    global stored_block, current_block, stored_this_block
+
+    if stored_this_block:
+        return
+
+    stored_this_block = True
+    tmp = current_block
+    if stored_block is not None:
+        current_block = stored_block
+        current_block.reset_position()
+        stored_block = tmp
+    else:
+        stored_block = current_block
+        current_block = block.spawn_random_block()
+    blocks.append(current_block)
+    blocks.remove(stored_block)
