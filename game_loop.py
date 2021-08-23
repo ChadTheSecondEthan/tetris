@@ -13,6 +13,7 @@ screen = None
 stored_block = None
 current_block = None
 blocks = []
+tiles = []
 
 won = False
 playing = True
