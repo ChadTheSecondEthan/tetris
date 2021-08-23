@@ -32,8 +32,7 @@ def start(s):
 
     screen = s
 
-    current_block = block.spawn_random_block()
-    blocks.append(current_block)
+    get_new_block()
 
     background = pygame.Surface(variables.SCREEN_SIZE)
     background = background.convert()
@@ -71,16 +70,16 @@ def get_new_block():
     global current_block, stored_this_block
     current_block = block.spawn_random_block()
 
-    if current_block.collides_with(blocks[-1]):
+    if len(blocks) > 1 and blocks[-1] is not current_block and current_block.collides_with(blocks[-1]):
         current_block = None
         return
 
     blocks.append(current_block)
+    tiles.extend(current_block.tiles)
     stored_this_block = False
 
 
 def try_remove_row():
-    # TODO
     pass
 
 

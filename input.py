@@ -19,3 +19,8 @@ def update():
         game_loop.current_block.v_move(False)
     if keys[pygame.K_UP]:
         game_loop.current_block.v_move(True)
+
+    if keys[pygame.K_a]:
+        game_loop.current_block.rotate(False)
+    if keys[pygame.K_d]:
+        game_loop.current_block.rotate(True)
