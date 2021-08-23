@@ -7,7 +7,10 @@ def update():
     keys = pygame.key.get_pressed()
 
     if keys[pygame.K_SPACE]:
-        print("SPACE")
+        game_loop.store_current_block()
+
+    if game_loop.current_block is None:
+        return
     if keys[pygame.K_LEFT]:
         game_loop.current_block.h_move(False)
     if keys[pygame.K_RIGHT]:
