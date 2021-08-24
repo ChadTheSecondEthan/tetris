@@ -17,7 +17,6 @@ blocks = []
 tiles = []
 
 won = False
-playing = True
 
 prev_time = 0
 prev_block_time = 0
@@ -47,18 +46,19 @@ def update():
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
-        if event.type == pygame.KEYDOWN and playing:
+        if event.type == pygame.KEYDOWN:
             input.update()
 
-    if playing and time() - prev_block_time > wait:
+    if time() - prev_block_time > wait:
         current_block.update()
         prev_block_time = time()
 
     background.fill(variables.BG_COLOR)
 
     for b in blocks:
-        if b is not stored_block:
-            b.draw(background)
+        b.draw(background)
+    if stored_block:
+        stored_block.draw(background)
 
     screen.blit(background, (0, 0))
     pygame.display.flip()
@@ -80,7 +80,22 @@ def get_new_block():
 
 
 def try_remove_row():
-    pass
+    # get all y values of tiles
+    y_values = []
+    for tile in tiles:
+        if tile[1] not in y_values:
+            y_values.append(tile[1])
+
+    for y in y_values:
+        num_tiles = 0
+        for _block in blocks:
+            for tile in _block.tiles:
+                if tile[1] == y:
+                    num_tiles += 1
+                    if num_tiles == variables.TILE_X:
+                        print("Should remove tile")
+                        # TODO remove all tiles, remove blocks if they have no tiles, etc.
+                        break
 
 
 def store_current_block():
@@ -98,5 +113,8 @@ def store_current_block():
     else:
         stored_block = current_block
         current_block = block.spawn_random_block()
+
+    stored_block.set_position((2 * variables.TILE_SIZE, 2 * variables.TILE_SIZE))
+
     blocks.append(current_block)
     blocks.remove(stored_block)

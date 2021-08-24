@@ -1,3 +1,4 @@
+import sys
 from random import random
 import pygame
 
@@ -31,7 +32,8 @@ class Block:
                                block[1] * variables.TILE_SIZE + SPAWN_LOCATION[1]])
 
         if self.check_block_collisions():
-            game_loop.playing = False
+            print("Game over")
+            sys.exit()
 
     def update(self):
         for tile in self.tiles:
@@ -105,6 +107,12 @@ class Block:
             self.tiles.append([block[0] * variables.TILE_SIZE + SPAWN_LOCATION[0],
                                block[1] * variables.TILE_SIZE + SPAWN_LOCATION[1]])
 
+    def set_position(self, pos):
+        start_positions = blocks[self._type][1]
+        for i in range(len(self.tiles)):
+            self.tiles[i][0] = pos[0] + start_positions[i][0] * variables.TILE_SIZE
+            self.tiles[i][1] = pos[1] + start_positions[i][1] * variables.TILE_SIZE
+
     def collides_with(self, other):
         for tile in self.tiles:
             for _tile in other.tiles:
@@ -114,5 +122,5 @@ class Block:
 
 
 def spawn_random_block():
-    # return Block(int(random() * len(blocks)))
-    return Block(0)
+    return Block(int(random() * len(blocks)))
+    # return Block(0)
