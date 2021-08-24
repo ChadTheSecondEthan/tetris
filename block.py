@@ -12,18 +12,21 @@ blocks = [
     ((255, 165, 0), [(1, -1), (-1, 0), (0, 0), (1, 0)]),  # orange L
     ((0, 255, 0), [(-1, 1), (0, 1), (0, 0), (1, 0)]),  # green z
     ((255, 0, 0), [(1, 1), (0, 1), (0, 0), (-1, 0)]),  # red z
-    ((112, 51, 173), [(-1, 1), (0, 0), (0, 1), (1, 1)])  # purple t
+    ((112, 51, 173), [(-1, 1), (0, 0), (0, 1), (1, 1)], [(-1, -1), (0, 0), (-1, 0), (-1, 1)],
+     [(-1, -1), (0, 0), (0, -1), (1, -1)], [(1, -1), (0, 0), (1, 0), (1, 1)])  # purple t
 ]
 
 
 class Block:
 
     def __init__(self, _type):
+        self.rotation = 0
         self.images = []
         self.tiles = []
         self._type = _type
+        self.blocks_moved = [0, 0]
         data = blocks[_type]
-        for block in data[1]:
+        for block in self.get_tiles():
             img = pygame.Surface((variables.TILE_SIZE, variables.TILE_SIZE))
             img.fill(data[0])
             self.images.append(img)
@@ -35,7 +38,11 @@ class Block:
             print("Game over")
             sys.exit()
 
+    def get_tiles(self):
+        return blocks[self._type][1 + self.rotation]
+
     def update(self):
+        self.blocks_moved[1] += 1
         for tile in self.tiles:
             tile[1] += variables.TILE_SIZE
         if self.check_block_collisions() or not self.v_on_screen():
@@ -69,6 +76,8 @@ class Block:
         return True
 
     def h_move(self, right, check=True):
+        self.blocks_moved[0] += 1 if right else -1
+
         if self.h_on_screen():
             for tile in self.tiles:
                 tile[0] += variables.TILE_SIZE if right else -variables.TILE_SIZE
@@ -85,21 +94,17 @@ class Block:
             return
 
     def rotate(self, right):
-        dy = []
+        self.rotation += 1 if right else -1
+        if self.rotation == -1:
+            self.rotation = 3
+        else:
+            self.rotation %= 4
         tmp_tiles = []
-        data = blocks[self._type]
+        for tile in self.get_tiles():
+            tmp_tiles.append([(tile[0] + self.blocks_moved[0]) * variables.TILE_SIZE + SPAWN_LOCATION[0], (tile[1] +
+                              self.blocks_moved[1]) + variables.TILE_SIZE + SPAWN_LOCATION[1]])
 
-        for i in range(len(data[1])):
-            block = data[1][i]
-            tmp = data[1][i][0], data[1][i][1]
-            tmp_tiles.append([block[0] * variables.TILE_SIZE + SPAWN_LOCATION[0],
-                              block[1] * variables.TILE_SIZE + SPAWN_LOCATION[1]])
-            dy.append(self.tiles[i][1] - tmp_tiles[i][1])
-
-        for tile in self.tiles:
-            tmp = tile[0], tile[1]
-            tile[0] = tmp[1] if right else -tmp[1]
-            tile[1] = tile[1]
+        self.tiles = tmp_tiles
 
     def reset_position(self):
         self.tiles = []
@@ -122,5 +127,5 @@ class Block:
 
 
 def spawn_random_block():
-    return Block(int(random() * len(blocks)))
-    # return Block(0)
+    # return Block(int(random() * len(blocks)))
+    return Block(-1)
