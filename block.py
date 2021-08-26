@@ -68,7 +68,7 @@ class Block:
             self.move_up()
 
             if self.frames_collided >= frames_to_lock:
-                if not on_screen:
+                if not on_screen and not colliding:
                     self.move_down()
                 game_loop.get_new_block()
                 game_loop.try_remove_row()
