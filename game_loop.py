@@ -20,7 +20,7 @@ won = False
 
 prev_time = 0
 prev_block_time = 0
-wait = 1 / variables.FPS
+wait = 1.0 / variables.FPS
 
 
 def start(s):

@@ -48,26 +48,31 @@ class Block:
     def get_tiles(self):
         return blocks[self._type][1 + self.rotation]
 
+    def move_up(self):
+        for tile in self.tiles:
+            tile[1] -= variables.TILE_SIZE
+
+    def move_down(self):
+        for tile in self.tiles:
+            tile[1] += variables.TILE_SIZE
+
     def update(self):
         self.blocks_moved[1] += 1
-
-        if self.frames_collided == 0:
-            for tile in self.tiles:
-                tile[1] += variables.TILE_SIZE
+        self.move_down()
 
         colliding = self.check_block_collisions()
         on_screen = self.v_on_screen()
 
         if colliding or not on_screen:
-            print("Colliding")
             self.frames_collided += 1
+            self.move_up()
+
             if self.frames_collided >= frames_to_lock:
+                if not on_screen:
+                    self.move_down()
                 game_loop.get_new_block()
                 game_loop.try_remove_row()
                 return
-            if self.frames_collided == 0:
-                for tile in self.tiles:
-                    tile[1] -= variables.TILE_SIZE
         else:
             self.frames_collided = 0
 
@@ -88,18 +93,17 @@ class Block:
                 return False
         return True
 
-    def h_on_screen(self):
-        for tile in self.tiles:
-            if tile[0] < 1 or tile[0] > variables.WIDTH - variables.TILE_SIZE - 1:
-                return False
-        return True
-
     def h_move(self, right, check=True):
+
+        for _tile in self.tiles:
+            if (not right and _tile[0] == 0) or \
+               (right and _tile[0] == (variables.TILE_X - 1) * variables.TILE_SIZE):
+                return
+
         self.blocks_moved[0] += 1 if right else -1
 
-        if self.h_on_screen():
-            for tile in self.tiles:
-                tile[0] += variables.TILE_SIZE if right else -variables.TILE_SIZE
+        for tile in self.tiles:
+            tile[0] += variables.TILE_SIZE if right else -variables.TILE_SIZE
 
         if check and self.check_block_collisions():
             self.h_move(not right, check=False)
@@ -128,8 +132,8 @@ class Block:
             self.frames_collided = 0
             while True:
                 if self.check_block_collisions() or not self.v_on_screen():
-                    for tile in self.tiles:
-                        tile[1] -= variables.TILE_SIZE
+                    self.move_up()
+                    self.blocks_moved[1] -= 1
                 elif self.v_on_screen():
                     return
 
