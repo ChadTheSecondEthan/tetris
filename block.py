@@ -5,7 +5,8 @@ import pygame
 import variables
 import game_loop
 
-SPAWN_LOCATION = variables.TILE_X * variables.TILE_SIZE // 2, variables.TILE_SIZE * 3
+spawn_location = variables.TILE_X * variables.TILE_SIZE // 2, variables.TILE_SIZE * 3
+frames_to_lock = 5
 blocks = [
     ((130, 200, 255), ((0, -1), (0, 0), (0, 1), (0, 2)), ((-1, 0), (0, 0), (1, 0), (2, 0)),         # tall blue
      ((0, 1), (0, 0), (0, -1), (0, -2)), ((1, 0), (0, 0), (-1, 0), (-2, 0))),
@@ -26,6 +27,7 @@ class Block:
 
     def __init__(self, _type):
         self.rotation = 0
+        self.frames_collided = 0
         self.images = []
         self.tiles = []
         self._type = _type
@@ -36,8 +38,8 @@ class Block:
             img.fill(data[0])
             self.images.append(img)
 
-            self.tiles.append([tile[0] * variables.TILE_SIZE + SPAWN_LOCATION[0],
-                               tile[1] * variables.TILE_SIZE + SPAWN_LOCATION[1]])
+            self.tiles.append([tile[0] * variables.TILE_SIZE + spawn_location[0],
+                               tile[1] * variables.TILE_SIZE + spawn_location[1]])
 
         if self.check_block_collisions():
             print("Game over")
@@ -49,14 +51,25 @@ class Block:
     def update(self):
         self.blocks_moved[1] += 1
 
-        for tile in self.tiles:
-            tile[1] += variables.TILE_SIZE
-        if self.check_block_collisions() or not self.v_on_screen():
-            game_loop.get_new_block()
-            if self.v_on_screen() or self.check_block_collisions():
-                for location in self.tiles:
-                    location[1] -= variables.TILE_SIZE
-            game_loop.try_remove_row()
+        if self.frames_collided == 0:
+            for tile in self.tiles:
+                tile[1] += variables.TILE_SIZE
+
+        colliding = self.check_block_collisions()
+        on_screen = self.v_on_screen()
+
+        if colliding or not on_screen:
+            print("Colliding")
+            self.frames_collided += 1
+            if self.frames_collided >= frames_to_lock:
+                game_loop.get_new_block()
+                game_loop.try_remove_row()
+                return
+            if self.frames_collided == 0:
+                for tile in self.tiles:
+                    tile[1] -= variables.TILE_SIZE
+        else:
+            self.frames_collided = 0
 
     def draw(self, bg):
         for i in range(len(self.images)):
@@ -108,14 +121,23 @@ class Block:
 
         tmp_tiles = self.get_tiles()
         for i in range(len(self.tiles)):
-            self.tiles[i] = [(tmp_tiles[i][0] + self.blocks_moved[0]) * variables.TILE_SIZE + SPAWN_LOCATION[0],
-                             (tmp_tiles[i][1] + self.blocks_moved[1]) * variables.TILE_SIZE + SPAWN_LOCATION[1]]
+            self.tiles[i] = [(tmp_tiles[i][0] + self.blocks_moved[0]) * variables.TILE_SIZE + spawn_location[0],
+                             (tmp_tiles[i][1] + self.blocks_moved[1]) * variables.TILE_SIZE + spawn_location[1]]
+
+        if self.check_block_collisions() or not self.v_on_screen():
+            self.frames_collided = 0
+            while True:
+                if self.check_block_collisions() or not self.v_on_screen():
+                    for tile in self.tiles:
+                        tile[1] -= variables.TILE_SIZE
+                elif self.v_on_screen():
+                    return
 
     def reset_position(self):
         self.tiles = []
         for tile in self.get_tiles():
-            self.tiles.append([tile[0] * variables.TILE_SIZE + SPAWN_LOCATION[0],
-                               tile[1] * variables.TILE_SIZE + SPAWN_LOCATION[1]])
+            self.tiles.append([tile[0] * variables.TILE_SIZE + spawn_location[0],
+                               tile[1] * variables.TILE_SIZE + spawn_location[1]])
 
     def set_position(self, pos):
         start_positions = blocks[self._type][1]
