@@ -6,7 +6,6 @@ import block
 import input
 import variables
 
-
 background = None
 screen = None
 
@@ -31,10 +30,10 @@ def start(s):
 
     screen = s
 
-    get_new_block()
-
     background = pygame.Surface(variables.SCREEN_SIZE)
     background = background.convert()
+
+    get_new_block()
 
 
 def update():
@@ -55,10 +54,11 @@ def update():
 
     background.fill(variables.BG_COLOR)
 
-    for b in blocks:
-        b.draw(background)
+    for _tile in tiles:
+        background.blit(_tile.img, (_tile.x, _tile.y))
     if stored_block:
-        stored_block.draw(background)
+        for _tile in stored_block.tiles:
+            background.blit(_tile.img, (_tile.x, _tile.y))
 
     screen.blit(background, (0, 0))
     pygame.display.flip()
@@ -70,9 +70,11 @@ def get_new_block():
     global current_block, stored_this_block
     current_block = block.spawn_random_block()
 
-    if len(blocks) > 1 and blocks[-1] is not current_block and current_block.collides_with(blocks[-1]):
-        current_block = None
-        return
+    if len(blocks) > 1 and blocks[-1] is not current_block:
+        for tile in blocks[-1].tiles:
+            if current_block.collides_with(tile):
+                current_block = None
+                return
 
     blocks.append(current_block)
     tiles.extend(current_block.tiles)
@@ -83,19 +85,21 @@ def try_remove_row():
     # get all y values of tiles
     y_values = []
     for tile in tiles:
-        if tile[1] not in y_values:
-            y_values.append(tile[1])
+        if tile.y not in y_values:
+            y_values.append(tile.y)
 
     for y in y_values:
         num_tiles = 0
-        for _block in blocks:
-            for tile in _block.tiles:
-                if tile[1] == y:
-                    num_tiles += 1
-                    if num_tiles == variables.TILE_X:
-                        print("Should remove tile")
-                        # TODO remove all tiles, remove blocks if they have no tiles, etc.
-                        break
+        for tile in tiles:
+            if tile.y == y:
+                num_tiles += 1
+                if num_tiles == variables.TILE_X:
+                    for _tile in [] + tiles:
+                        if _tile.y == y:
+                            tiles.remove(_tile)
+                        if _tile.y < y:
+                            _tile.y += variables.TILE_SIZE
+                    break
 
 
 def store_current_block():
