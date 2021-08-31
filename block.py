@@ -20,13 +20,15 @@ blocks = [
     ((255, 0, 0), ((1, 1), (0, 1), (0, 0), (-1, 0)), ((1, -1), (1, 0), (0, 0), (0, 1)),  # red z
      ((1, 1), (0, 1), (0, 0), (-1, 0)), ((1, -1), (1, 0), (0, 0), (0, 1))),
     ((112, 51, 173), ((-1, 0), (0, -1), (0, 0), (1, 0)), ((0, -1), (1, 0), (0, 0), (0, 1)),  # purple t
-     ((-1, 0), (0, 1), (0, 0), (1, 0)), ((0, -1), (-1, 0), (0, 0), (0, 1)))
+     ((-1, 0), (0, 1), (0, 0), (1, 0)), ((0, -1), (-1, 0), (0, 0), (0, 1))),
+    ((255, 255, 0), ((-1, 0), (0, 0), (-1, 1), (0, 1)), ((-1, 0), (0, 0), (-1, 1), (0, 1)), # yellow square
+     ((-1, 0), (0, 0), (-1, 1), (0, 1)), ((-1, 0), (0, 0), (-1, 1), (0, 1)))
 ]
 
 
 class Block:
 
-    def __init__(self, _type):
+    def __init__(self, _type, check_collisions=True):
         self.rotation = 0
         self.frames_collided = 0
         self.images = []
@@ -42,7 +44,7 @@ class Block:
             self.tiles.append(Tile([_tile[0] * variables.TILE_SIZE + spawn_location[0],
                                     _tile[1] * variables.TILE_SIZE + spawn_location[1]], data[0]))
 
-        if self.check_block_collisions():
+        if check_collisions and self.check_block_collisions():
             print("Game over")
             sys.exit()
 
@@ -84,8 +86,10 @@ class Block:
                     self.move_down()
                 game_loop.try_remove_row()
                 game_loop.get_new_block()
+                return True
         else:
             self.frames_collided = 0
+        return False
 
     def check_block_collisions(self):
         for _tile in game_loop.tiles:
@@ -96,6 +100,12 @@ class Block:
     def v_on_screen(self):
         for tile in self.tiles:
             if tile.y > variables.HEIGHT - variables.TILE_SIZE - 1:
+                return False
+        return True
+
+    def h_on_screen(self):
+        for tile in self.tiles:
+            if tile.x < 0 or tile.x > variables.WIDTH - variables.TILE_SIZE:
                 return False
         return True
 
@@ -137,7 +147,7 @@ class Block:
                                  self.tiles[0].color)
             game_loop.tiles.append(self.tiles[i])
 
-        if self.check_block_collisions() or not self.v_on_screen():
+        if self.check_block_collisions() or not self.v_on_screen() or not self.h_on_screen():
             self.frames_collided = 0
             while True:
                 if self.check_block_collisions() or not self.v_on_screen():
@@ -184,6 +194,24 @@ class Block:
             if tile.x == _tile.x and tile.y == _tile.y:
                 return True
         return False
+
+    def draw_preview(self, background):
+        preview_block = Block(self._type, check_collisions=False)
+        for i in range(len(preview_block.tiles)):
+            preview_block.tiles[i].x = self.tiles[i].x
+            preview_block.tiles[i].y = self.tiles[i].y
+        should_run = True
+        while should_run and preview_block.v_on_screen():
+            for tile in preview_block.tiles:
+                tile.y += variables.TILE_SIZE
+            for tile in game_loop.tiles:
+                if tile not in self.tiles and tile not in preview_block.tiles and preview_block.collides_with(tile):
+                    for _tile in preview_block.tiles:
+                        _tile.y -= variables.TILE_SIZE
+                    should_run = False
+        for i in range(len(preview_block.tiles)):
+            preview_block.tiles[i].img.fill((255, 255, 255))
+            background.blit(preview_block.tiles[i].img, (preview_block.tiles[i].x, preview_block.tiles[i].y))
 
 
 def spawn_random_block():
