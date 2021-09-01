@@ -110,17 +110,12 @@ class Block:
         return True
 
     def h_move(self, right, check=True):
-        for _tile in self.tiles:
-            if (not right and _tile.x == 0) or \
-                    (right and _tile.x == (variables.TILE_X - 1) * variables.TILE_SIZE):
-                return
-
         self.blocks_moved[0] += 1 if right else -1
 
         for tile in self.tiles:
             tile.x += variables.TILE_SIZE if right else -variables.TILE_SIZE
 
-        if check and self.check_block_collisions():
+        if check and (self.check_block_collisions() or not self.h_on_screen()):
             self.h_move(not right, check=False)
 
     def v_move(self, up):
@@ -128,8 +123,8 @@ class Block:
             while self is game_loop.current_block:
                 self.update()
         else:  # fall one tile faster
-            # self.update()
-            return
+            if self is game_loop.current_block:
+                self.update()
 
     def rotate(self, right):
         self.rotation += 1 if right else -1
@@ -167,7 +162,7 @@ class Block:
             while True:
                 moved = False
                 for _tile in self.tiles:
-                    if _tile.x <= 0:
+                    if _tile.x < 0:
                         self.move_right()
                         moved = True
                         break

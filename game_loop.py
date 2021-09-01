@@ -42,13 +42,15 @@ def update():
     if pygame.key.get_pressed()[pygame.K_ESCAPE]:
         sys.exit()
 
+    pygame.keydown = False
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
         if event.type == pygame.KEYDOWN:
-            input.update()
+            pygame.keydown = True
+    input.update()
 
-    if time() - prev_block_time > wait:
+    if time() - prev_block_time > 1.0 / variables.FPS:
         current_block.update()
         prev_block_time = time()
 
